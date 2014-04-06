@@ -143,6 +143,17 @@ structure Evaluator = struct
     | primEq [_,_] = I.VBool false
     | primEq _ = evalError ["type error in primEq"]
 
+  fun primCons [x, I.VList xs] = I.VList (ref x::xs)
+    | primCons _ = evalError ["type error in primCons"]
+
+  fun primHd [I.VList (ref x::xs)] = x
+    | primHd _ = evalError ["type error in primHd"]
+
+  fun primTl [I.VList (x::xs)] = I.VList xs
+    | primTl _ = evalError ["type error in primTl"]
+
+  fun primUpdateHd [I.VList (x::xs),y] = x:=y
+    | primUpdateHd _ = evalError ["type error in UpdateHd"]
 
   val initialEnv = 
       [("+", Func (["a","b"], I.EPrimCall (primPlus,
@@ -152,7 +163,22 @@ structure Evaluator = struct
        ("=", Func (["a","b"], I.EPrimCall (primEq,
 					   [I.EIdent "a",
 					    I.EIdent "b"]),
-		    []))
+		    [])),
+       ("nil", Con (I.VList [])),
+       ("cons", Func (["a","b"], I.EPrimCall (primCons,
+             [I.EIdent "a",
+              I.EIdent "b"]),
+        [])),
+       ("hd", Func (["a"], I.EPrimCall (primHd,
+             [I.EIdent "a"]),
+        [])),
+       ("tl", Func (["a"], I.EPrimCall (primTl,
+             [I.EIdent "a"]),
+        [])),
+       ("updateHd", Proc (["a","b"], I.SPrimCall (primUpdateHd,
+             [I.EIdent "a",
+              I.EIdent "b"]),
+        []))       
       ]
 
 
