@@ -347,6 +347,25 @@ structure Parser =  struct
 
 
   and parse_stmt ts = let
+        fun stmt_HD ts = 
+      (case expect_SYM ts
+        of NONE => NONE
+          | SOME ("hd",ts) => 
+            (case expect T_LPAREN ts
+              of NONE => NONE
+              | SOME ts=> 
+                (case parse_expr ts 
+                  of NONE => NONE
+                  | SOME (e1, ts) => 
+            (case expect T_RPAREN ts
+              of NONE => NONE
+              | SOME ts => 
+                (case expect T_LEFTARROW ts 
+                  of NONE => NONE
+                  | SOME ts =>
+                (case parse_expr ts 
+                  of NONE => NONE
+                  | SOME (e2, ts) => SOME (I.SCall ("updateHd",[e1,e2]), ts)))))))
     fun stmt_IF ts = 
 	(case expect T_IF ts
 	  of NONE => NONE
@@ -430,8 +449,8 @@ structure Parser =  struct
 		     | SOME ts => SOME (I.SBlock ss,ts))))
 
   in
-    choose [stmt_IF, stmt_WHILE, stmt_UPDATE, stmt_CALL, stmt_PRINT,
-	    stmt_BLOCK_EMPTY, stmt_BLOCK ] ts
+    choose [stmt_HD,stmt_IF, stmt_WHILE, stmt_UPDATE, stmt_CALL, stmt_PRINT,
+	    stmt_BLOCK_EMPTY, stmt_BLOCK] ts
   end
 
 
