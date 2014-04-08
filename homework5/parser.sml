@@ -347,6 +347,28 @@ structure Parser =  struct
 
 
   and parse_stmt ts = let
+        fun stmt_VAR ts =
+      (case expect T_LBRACE ts
+        of NONE => NONE
+        | SOME ts => 
+      (case expect T_VAR ts
+        of NONE => NONE
+        | SOME ts => 
+          (case expect_SYM ts 
+            of NONE => NONE
+            | SOME (x, ts) => 
+              (case expect T_EQUAL ts
+                of NONE => NONE
+                | SOME ts => 
+                  (case parse_expr ts
+                    of NONE => NONE
+                    | SOME (e, ts) => 
+                      (case expect T_SEMICOLON ts
+                        of NONE => NONE
+                        | SOME ts => 
+                          (case parse_stmt (T_LBRACE::ts)
+                            of NONE => NONE
+                            | SOME (s, ts) => SOME ((I.SBlock [I.SVar (x, e, s)]),ts))))))))
     fun stmt_HD ts = 
       (case expect_SYM ts
         of NONE => NONE
@@ -365,8 +387,9 @@ structure Parser =  struct
                   | SOME ts =>
                 (case parse_expr ts 
                   of NONE => NONE
-                  | SOME (e2, ts) => SOME (I.SCall ("updateHd",[e1,e2]), ts)))))))
-    fun stmt_LETVAR = 
+                  | SOME (e2, ts) => SOME (I.SCall ("updateHd",[e1,e2]), ts))))))
+            | SOME (s,ts)=> NONE)
+    fun stmt_LETVAR ts = 
       (case expect T_LETVAR ts 
         of NONE => NONE
         | SOME ts => 
@@ -384,7 +407,7 @@ structure Parser =  struct
                         | SOME ts => 
                           (case parse_stmt ts
                             of NONE => NONE
-                            | SOME ))))))
+                            | SOME (s,ts) => SOME (I.SVar (x, e, s), ts)))))))
     fun stmt_IF ts = 
 	(case expect T_IF ts
 	  of NONE => NONE
@@ -468,7 +491,7 @@ structure Parser =  struct
 		     | SOME ts => SOME (I.SBlock ss,ts))))
 
   in
-    choose [stmt_HD,stmt_IF, stmt_WHILE, stmt_UPDATE, stmt_CALL, stmt_PRINT,
+    choose [stmt_HD, stmt_LETVAR, stmt_VAR, stmt_IF, stmt_WHILE, stmt_UPDATE, stmt_CALL, stmt_PRINT,
 	    stmt_BLOCK_EMPTY, stmt_BLOCK] ts
   end
 
