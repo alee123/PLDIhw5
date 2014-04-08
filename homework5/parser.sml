@@ -347,7 +347,7 @@ structure Parser =  struct
 
 
   and parse_stmt ts = let
-        fun stmt_HD ts = 
+    fun stmt_HD ts = 
       (case expect_SYM ts
         of NONE => NONE
           | SOME ("hd",ts) => 
@@ -366,6 +366,25 @@ structure Parser =  struct
                 (case parse_expr ts 
                   of NONE => NONE
                   | SOME (e2, ts) => SOME (I.SCall ("updateHd",[e1,e2]), ts)))))))
+    fun stmt_LETVAR = 
+      (case expect T_LETVAR ts 
+        of NONE => NONE
+        | SOME ts => 
+          (case expect_SYM ts 
+            of NONE => NONE
+            | SOME (x, ts) => 
+              (case expect T_EQUAL ts
+                of NONE => NONE
+                | SOME ts => 
+                  (case parse_expr ts
+                    of NONE => NONE
+                    | SOME (e, ts) => 
+                      (case expect T_IN ts
+                        of NONE => NONE
+                        | SOME ts => 
+                          (case parse_stmt ts
+                            of NONE => NONE
+                            | SOME ))))))
     fun stmt_IF ts = 
 	(case expect T_IF ts
 	  of NONE => NONE
